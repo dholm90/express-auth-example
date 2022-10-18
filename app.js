@@ -79,25 +79,30 @@ app.get('/log-out', (req, res, next) => {
   })
 })
 
-app.post('/sign-up', (req, res, next) => {
-  // const isUserInDB = User.find({ 'username': req.body.username });
-  // if (isUserInDB.length > 0) {
-  //   return res.render('sign-up-form');
-  // }
-  bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
-    if (err) {
-      return next(err)
+app.post('/sign-up', async (req, res, next) => {
+  try {
+    const isUserInDB = await User.find({ 'username': req.body.username });
+    if (isUserInDB.length > 0) {
+      return res.render('sign-up-form');
     }
-    const user = new User({
-      username: req.body.username,
-      password: hashedPassword
-    }).save(err => {
+    bcrypt.hash(req.body.password, 10, (err, hashedPassword) => {
       if (err) {
-        return next(err);
+        return next(err)
       }
-      res.redirect('/');
-    });
-  })
+      const user = new User({
+        username: req.body.username,
+        password: hashedPassword
+      }).save(err => {
+        if (err) {
+          return next(err);
+        }
+        res.redirect('/');
+      });
+    })
+  } catch (err) {
+    return next(err);
+  }
+
 });
 
 app.post(
